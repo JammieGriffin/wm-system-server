@@ -11,3 +11,8 @@ function createToken(data:any):string{
 async function checkToken(token:string){
   return await jwt.verify(token,secret)
 }
+
+export {
+  createToken,
+  checkToken
+}
