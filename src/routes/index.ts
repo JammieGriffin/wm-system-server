@@ -1,5 +1,5 @@
 import { Express, Request, Response, Router } from "express";
-import sysApi from './sys';
+import sysApi from "./sys";
 
 interface IRouterConf {
   path: string;
@@ -19,4 +19,4 @@ function routes(app: Express): void {
   });
 }
 
-export {routes,IRouterConf}
+export { routes, IRouterConf };

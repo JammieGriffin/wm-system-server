@@ -1,4 +1,4 @@
-export interface ILoginData{
-  account:string;
+export interface ILoginData {
+  account: string;
   pwd: string;
 }
