@@ -8,44 +8,107 @@ const router = express.Router();
 const mysql = require("mysql2");
 const db = mysql.createConnection(dbConf);
 const hexoid = require("hexoid");
+const toHex32 = hexoid(32)
 const sysApi: Array<IRouterConf> = [
   {
     path: "/sys",
     router: router.post("/login", (req: any, res: Response) => {
       const reqdata: ILoginData = req.body;
-      const sql = `select * from user where wno=${reqdata.account} and pwd=${reqdata.pwd}`;
+      const sql = `select * from user where wno=${reqdata.account}`;
       db.query(sql, (err: any, result: any) => {
         if (err) {
           throw err;
         }
         if (result.length === 1) {
-          const { uid, wno, pwd, userType, sex, usrName, phone } = result[0];
-          const token = createToken({
-            uid: uid,
-            wno: wno,
-            date: Date.now(),
-          });
-          res.send({
-            success: true,
-            token: token,
-            result: {
-              uid,
-              wno,
-              userType,
-              sex,
-              usrName,
-              phone,
-            },
-          });
+          const { uid, wno, pwd, usrType, sex, usrName, phone } = result[0];
+          if (reqdata.pwd === pwd) {
+            const token = createToken({
+              uid: uid,
+              wno: wno,
+              date: Date.now(),
+            });
+            res.send({
+              success: true,
+              token: token,
+              result: {
+                uid,
+                wno,
+                usrType,
+                sex,
+                usrName,
+                phone,
+              },
+            });
+          }else{
+            res.send({
+              success:false,
+              message:"密码错误"
+            })
+          }
+          
         } else {
           res.send({
             success: false,
-            result: "账号或密码错误",
+            message: "该账号不存在，请注册",
           });
         }
       });
     }),
   },
+  {
+    path:"/sys",
+    router: router.post("/register",(req:any,res:Response) => {
+      console.log(req.body);
+      const sql_checkAcc = `select wno from user where wno=${req.body.account}`;
+      db.query(sql_checkAcc,(err: any,result: any) => {
+        if (err) {
+          throw err;
+        }
+        if (result.length === 0) {
+          const uid = toHex32()
+          console.log(uid.length);
+          const {account,pwd,phone,sex,usrName} = req.body;
+          const sql_addUsr = `insert into \`user\` (\`uid\`,\`wno\`,\`pwd\`,\`usrType\`,\`sex\`,\`usrName\`,\`phone\`) values ('${uid}','${account}','${pwd}','staff','${sex}','${usrName}','${phone}')`;
+          db.query(sql_addUsr,(err:any,result:any)=> {
+            if (err) {
+              res.send({
+                success:false,
+                errono:err.errno,
+                message:err.sqlMessage,
+              });
+              throw err;
+            }
+            const token = createToken({
+              uid:uid,
+              wno:account,
+              date: Date.now()
+            });
+            res.send({
+              success:true,
+              message:"注册成功",
+              result:{
+                uid:uid,
+                wno:account,
+                userType:'staff',
+                sex:sex,
+                usrName:usrName,
+                phone:phone
+              },
+              token:token,
+              timestap:Date.now()
+            })
+          })
+          
+        }else{
+          res.send({
+            success:false,
+            message:"该账号已经存在"
+          });
+        }
+        
+      })
+    })
+  }
 ];
 
 export default sysApi;
