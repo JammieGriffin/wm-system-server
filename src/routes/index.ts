@@ -1,5 +1,7 @@
 import { Express, Request, Response, Router } from "express";
 import sysApi from "./sys";
+import consoleApi from "./console";
+import warehouseApi from "./warehouse";
 
 interface IRouterConf {
   path: string;
@@ -7,7 +9,11 @@ interface IRouterConf {
   meta?: unknown;
 }
 
-const RouterConf: Array<IRouterConf> = [...sysApi];
+const RouterConf: Array<IRouterConf> = [
+  ...sysApi,
+  ...consoleApi,
+  ...warehouseApi,
+];
 
 function routes(app: Express): void {
   app.get("/", (req: Request, res: Response) => {
