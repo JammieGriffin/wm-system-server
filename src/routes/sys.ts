@@ -8,7 +8,7 @@ const router = express.Router();
 const mysql = require("mysql2");
 const db = mysql.createConnection(dbConf);
 const hexoid = require("hexoid");
-const toHex32 = hexoid(32)
+const toHex32 = hexoid(32);
 const sysApi: Array<IRouterConf> = [
   {
     path: "/sys",
@@ -39,13 +39,12 @@ const sysApi: Array<IRouterConf> = [
                 phone,
               },
             });
-          }else{
+          } else {
             res.send({
-              success:false,
-              message:"密码错误"
-            })
+              success: false,
+              message: "密码错误",
+            });
           }
-          
         } else {
           res.send({
             success: false,
@@ -56,59 +55,57 @@ const sysApi: Array<IRouterConf> = [
     }),
   },
   {
-    path:"/sys",
-    router: router.post("/register",(req:any,res:Response) => {
+    path: "/sys",
+    router: router.post("/register", (req: any, res: Response) => {
       console.log(req.body);
       const sql_checkAcc = `select wno from user where wno=${req.body.account}`;
-      db.query(sql_checkAcc,(err: any,result: any) => {
+      db.query(sql_checkAcc, (err: any, result: any) => {
         if (err) {
           throw err;
         }
         if (result.length === 0) {
-          const uid = toHex32()
+          const uid = toHex32();
           console.log(uid.length);
-          const {account,pwd,phone,sex,usrName} = req.body;
+          const { account, pwd, phone, sex, usrName } = req.body;
           const sql_addUsr = `insert into \`user\` (\`uid\`,\`wno\`,\`pwd\`,\`usrType\`,\`sex\`,\`usrName\`,\`phone\`) values ('${uid}','${account}','${pwd}','staff','${sex}','${usrName}','${phone}')`;
-          db.query(sql_addUsr,(err:any,result:any)=> {
+          db.query(sql_addUsr, (err: any, result: any) => {
             if (err) {
               res.send({
-                success:false,
-                errono:err.errno,
-                message:err.sqlMessage,
+                success: false,
+                errono: err.errno,
+                message: err.sqlMessage,
               });
               throw err;
             }
             const token = createToken({
-              uid:uid,
-              wno:account,
-              date: Date.now()
+              uid: uid,
+              wno: account,
+              date: Date.now(),
             });
             res.send({
-              success:true,
-              message:"注册成功",
-              result:{
-                uid:uid,
-                wno:account,
-                userType:'staff',
-                sex:sex,
-                usrName:usrName,
-                phone:phone
+              success: true,
+              message: "注册成功",
+              result: {
+                uid: uid,
+                wno: account,
+                userType: "staff",
+                sex: sex,
+                usrName: usrName,
+                phone: phone,
               },
-              token:token,
-              timestap:Date.now()
-            })
-          })
-          
-        }else{
+              token: token,
+              timestap: Date.now(),
+            });
+          });
+        } else {
           res.send({
-            success:false,
-            message:"该账号已经存在"
+            success: false,
+            message: "该账号已经存在",
           });
         }
-        
-      })
-    })
-  }
+      });
+    }),
+  },
 ];
 
 export default sysApi;
