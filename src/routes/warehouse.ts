@@ -38,9 +38,6 @@ const warehouseApi: Array<IRouterConf> = [
             res.send({
               success: true,
               message: "新建成功",
-              result: {
-                hid: hid,
-              },
             });
           });
         });
@@ -82,5 +79,44 @@ const warehouseApi: Array<IRouterConf> = [
       });
     }),
   },
+  {
+    path:"warehouse",
+    router: router.get("/getWarehouseList",(req: any, res: Response) => {
+      const sql = `select h.hid,h.houseName,h.houseArea,h.capacity,ht.typeName,hs.style,hs.value from warehouse as h left join house_type as ht on h.houseType=ht.htid left join house_status as hs on h.houseStatus=hs.hsid`
+      db.query(sql,(err:any,result:any) => {
+        if (err) {
+          res.send({
+            success:false,
+            message:err.sqlMessage
+          })
+          throw err
+        }
+        res.send({
+          success:true,
+          result:result
+        })
+      })
+    })
+  },
+  {
+    path:"warehouse",
+    router: router.post("/rename",(req:any,res:Response) => {
+      const { hid, newName } = req.body;
+      const sql = `update warehouse set houseName='${newName}' where hid='${hid}'`;
+      db.query(sql,(err:any,result:any) => {
+        if (err) {
+          res.send({
+            success:false,
+            message:"更新仓库名称失败"
+          });
+          throw err
+        }
+        res.send({
+          success:true,
+          message:"更新成功"
+        })
+      })
+    })
+  }
 ];
 export default warehouseApi;
