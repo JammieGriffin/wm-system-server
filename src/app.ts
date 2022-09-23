@@ -1,11 +1,13 @@
-import express from "express";
+import express, { NextFunction } from "express";
 import { routes } from "./routes";
 import bodyParser from "body-parser";
+import checkAuth from "./middleware";
 import { PORT } from "../const";
 const cors = require("cors");
 const app = express();
 
 app.use(express.json());
+app.all("/*",checkAuth)
 app.use(
   cors({
     origin: "*",
