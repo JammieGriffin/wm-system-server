@@ -82,7 +82,7 @@ const warehouseApi: Array<IRouterConf> = [
   {
     path:"warehouse",
     router: router.get("/getWarehouseList",(req: any, res: Response) => {
-      const sql = `select h.hid,h.houseName,h.houseArea,h.capacity,ht.typeName,hs.style,hs.value from warehouse as h left join house_type as ht on h.houseType=ht.htid left join house_status as hs on h.houseStatus=hs.hsid`
+      const sql = `select h.hid,h.houseName,h.houseArea,h.capacity,ht.typeName,hs.hsid,hs.style,hs.value from warehouse as h left join house_type as ht on h.houseType=ht.htid left join house_status as hs on h.houseStatus=hs.hsid`
       db.query(sql,(err:any,result:any) => {
         if (err) {
           res.send({
@@ -116,6 +116,51 @@ const warehouseApi: Array<IRouterConf> = [
           message:"更新成功"
         })
       })
+    })
+  },
+  {
+    path:"warehouse",
+    router: router.post("/changeHouseType",(req:any,res:Response) => {
+      console.log(req.body);
+      const sql = `update warehouse set houseStatus = '${req.body.hsid}' where hid='${req.body.id}'`;
+      db.query(sql,(err:any,result:any) =>{
+        if (err) {
+          res.send({
+            success:false,
+            message:"更新仓库状态失败"
+          });
+          throw err
+        }
+        res.send({
+          success:true,
+          message:"更新成功"
+        });
+      })
+    })
+  },
+  {
+    path:"warehouse",
+    router: router.delete("/delHouse",(req:any,res:Response) => {
+      console.log(req.query);
+      
+      const sql = `delete from warehouse where hid='${req.query.id}'`;
+      db.query(sql,(err:any,result:any) => {
+        if (err) {
+          res.send({
+            success:false,
+            message:"删除仓库失败"
+          });
+          throw err;
+        }
+        console.log(result);
+        
+        res.send({
+          success:true,
+          message:"删除成功"
+        })
+      })
+
+      
     })
   }
 ];
