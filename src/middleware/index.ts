@@ -10,23 +10,29 @@ const checkAuth = async (req: Request, res: Response, next: NextFunction) => {
     );
     if (!whiteList) {
       const token = req.headers.usrtoken;
-      const auth =checkToken(token as string);
-      auth.then(() => {
-        next()
-      }).catch(() => {
-        next(new Error("401"))
-      })
+      const auth = checkToken(token as string);
+      auth
+        .then(() => {
+          next();
+        })
+        .catch(() => {
+          next(new Error("401:token失效请重新登录"));
+        });
     } else {
       next();
     }
   }
 };
-const errHandler = (err: Error, req: any, res: Response, next: NextFunction) => {
-  switch(err.message){
-    case "401":
-      res.status(401).send("token失效,请重新登录")
-  }
-  
+const errHandler = (
+  err: Error,
+  req: any,
+  res: Response,
+  next: NextFunction
+) => {
+  const errInfo = err.message.split(":");
+  const code = errInfo[0];
+  const msg = errInfo[1];
+  res.status(Number(code)).send(msg);
 };
 
 export { checkAuth, errHandler };
