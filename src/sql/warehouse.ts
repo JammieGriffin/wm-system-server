@@ -3,7 +3,7 @@ export const warehouseSql = {
   addNewHouse:
     "insert into `warehouse` " +
     "(`hid`,`houseStatus`,`houseName`,`houseAddr`,`houseType`,`houseArea`,`capacity`) " +
-    "values(?,1,?,'未设置',?,?,?)",
+    "values(?,4,?,'未设置',?,?,?)",
 
   queryWarehouse:
     "select h.hid,h.houseName,h.houseArea,h.capacity,ht.typeName,hs.hsid,hs.style,hs.value " +
@@ -17,7 +17,7 @@ export const warehouseSql = {
   delWarehouse: "delete from warehouse where hid = ?",
 
   queryWarehouseInfo:
-    "select h.hid,h.houseName,h.houseAddr,h.capacity,h.houseArea,hs.style,hs.value,ht.typeName " +
+    "select h.hid,h.houseName,h.houseAddr,h.capacity,h.houseArea,hs.hsid,hs.style,hs.value,ht.htid,ht.typeName " +
     "from warehouse as h inner join house_status as hs on h.houseStatus = hs.hsid " +
     "inner join house_type as ht on h.houseType = ht.htid where h.hid = ?",
 
@@ -27,6 +27,8 @@ export const warehouseSql = {
 
   queryWarehouseType:"select * from house_type",
   queryWarehouseStatus:"select * from house_status where hsid != 4",
+  updateBaseInfo:"update warehouse set houseName = ?,houseAddr = ?,houseType = ?,houseStatus = ?,houseArea = ?,"+
+    "capacity = ? where hid = ?",
 
 
 };

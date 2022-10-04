@@ -21,7 +21,7 @@ const warehouseApi: Array<IRouterConf> = [
       check("typeName").notEmpty(),
       (req: any, res: Response, next: NextFunction) => {
         const { name, type, area, capacity, typeName } = req.body;
-        let hid = toHex32();
+        let hid = hexoid(32)();
         if (typeName) {
           db.query(
             warehouseSql.addNewHouseType,
@@ -198,25 +198,55 @@ const warehouseApi: Array<IRouterConf> = [
   },
   {
     path: "/warehouse/detial",
-    router: router.post(
-      "/updateBaseInfo",
-      (req: any, res: Response, next: NextFunction) => {}
+    router: router.get(
+      "/getWarehouseStatus",
+      (req: any, res: Response, next: NextFunction) => {
+        db.query(warehouseSql.queryWarehouseStatus, (err: any, result: any) => {
+          if (err) {
+            next(new Error(`500:${err}`));
+          }
+          res.send({
+            success: true,
+            result: result,
+          });
+        });
+      }
     ),
   },
   {
     path: "/warehouse/detial",
-    router: router.get(
-      "/getWarehouseStatus",
+    router: router.post(
+      "/updateBaseInfo",
       (req: any, res: Response, next: NextFunction) => {
-        db.query(warehouseSql.queryWarehouseStatus,(err:any,result:any) => {
+        console.log(req.body);
+        const {
+          houseName,
+          houseId,
+          houseAddr,
+          houseArea,
+          houseType,
+          status,
+          capacity,
+        } = req.body;
+        db.query(warehouseSql.updateBaseInfo, [
+          houseName,
+          houseAddr,
+          houseType.htid,
+          status.hsid,
+          houseArea,
+          capacity,
+          houseId,
+        ],((err:any,result:any) => {
           if (err) {
-            next(new Error(err));
+            next(new Error(`500:${err}`));
+
           }
           res.send({
             success:true,
-            result:result
-          })
-        })
+            message:"仓库信息已更新"
+          });
+          
+        }));
       }
     ),
   },
