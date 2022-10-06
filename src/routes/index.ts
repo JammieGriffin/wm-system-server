@@ -3,7 +3,7 @@ import sysApi from "./sys";
 import consoleApi from "./console";
 import warehouseApi from "./warehouse";
 import pmcApi from "./pmc";
-import { checkAuth,errHandler } from "..//middleware";
+import { checkAuth,errHandler } from "../middleware/index";
 
 interface IRouterConf {
   path: string;
