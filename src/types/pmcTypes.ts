@@ -4,7 +4,8 @@ export interface ICargoType{
 }
 export interface ICargo{
   cid:string;
-  cname:string
+  cname:string;
+  quantity:number;
   ctid?:number;
   typeName?:string;
   tags?:Array<ICargoType>

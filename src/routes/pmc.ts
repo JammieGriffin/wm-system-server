@@ -56,35 +56,33 @@ const pmcApi: Array<IRouterConf> = [
       "/getCargos",
       (req: any, res: Response, next: NextFunction) => {
         let tmpSql = [pmcSql.queryCid, pmcSql.queryCargos];
-        const { ctid, keyWord, page, pageSize } = req.query;
-        const num = Number(pageSize);
-        const start = (Number(page) - 1) * num;
+        const { ctid, keyWord } = req.query;
         if (ctid && keyWord) {
-          tmpSql[0] += ` where ct.ctid=${ctid}`;
-          tmpSql[1] += ` where cg.cname like '%${keyWord}% limit ?,?`;
+          tmpSql[1] += ` where cg.cname like '%${keyWord}%' and ct.ctid=${ctid}`;
         } else if (ctid) {
-          tmpSql[0] += ` where ctid=${ctid}`;
-          tmpSql[1] += ` limit ?,?`;
+          tmpSql[1] += ` where ct.ctid=${ctid}`;
         } else if (keyWord) {
-          tmpSql[1] += ` where cg.cname like '%${keyWord}%' limit ?,?`;
+          tmpSql[1] += ` where cg.cname like '%${keyWord}%'`;
         }
         const sql = `${tmpSql[0]};${tmpSql[1]}`;
-        db.query(sql, [start, num], (err: any, result: any) => {
+        db.query(sql, (err: any, result: any) => {
           if (err) {
             next(new Error(`500:${err.sqlMessage}`));
           }
-          console.log(result);
-
           const cargos: Array<ICargo> = [];
+          console.log(result[0]);
+          
           Array.from(
-            result[0].map((item: { cid: string }) => {
-              return item.cid;
+            result[0].map((item: { cid: string; quantity: number }) => {
+              //return item.cid;
+              return item;
             }),
-            (cid: string) => {
+            (item: { cid: string; quantity: number }) => {
               const tags: Array<ICargoType> = [];
               let cname: string = "";
+
               result[1].forEach((data: ICargo, index: number) => {
-                if (data.cid === cid) {
+                if (data.cid === item.cid) {
                   cname === "" ? (cname = data.cname) : cname;
                   if (data.ctid) {
                     tags.push({
@@ -95,7 +93,12 @@ const pmcApi: Array<IRouterConf> = [
                 }
               });
               if (cname) {
-                cargos.push({ cid: cid, cname: cname, tags: [...tags] });
+                cargos.push({
+                  cid: item.cid,
+                  cname: cname,
+                  tags: [...tags],
+                  quantity: item.quantity,
+                });
               }
             }
           );
@@ -132,24 +135,65 @@ const pmcApi: Array<IRouterConf> = [
         const { cname, tags } = req.body;
         const hexid = hexoid(32)();
         const cid = hexid;
-        db.query(pmcSql.addCargo,[cid,cname],(err:any,_result:any) => {
+        db.query(pmcSql.addCargo, [cid, cname], (err: any, _result: any) => {
           if (err) {
             next(new Error(`500:${err.sqlMessage}`));
           }
-          tags.forEach((ctid:number) => {
-            db.query(pmcSql.addCargo_Type,[cid,ctid],(err:any,_result:any)=>{
-              if (err) {
-                next(new Error(`500:${err.sqlMessage}`));
+          tags.forEach((ctid: number) => {
+            db.query(
+              pmcSql.addCargo_Type,
+              [cid, ctid],
+              (err: any, _result: any) => {
+                if (err) {
+                  next(new Error(`500:${err.sqlMessage}`));
+                }
               }
-            });
-          })
+            );
+          });
           res.send({
-            success:true,
-            message:"添加成功"
-          })
+            success: true,
+            message: "添加成功",
+          });
         });
-        
-        
+      }
+    ),
+  },
+  {
+    path: "/pmc",
+    router: router.post(
+      "/updateCargoTypes",
+      (req: any, res: Response, next: NextFunction) => {
+        const { cid, del, add } = req.body;
+        if (add.length > 0) {
+          add.forEach((ctid: number) => {
+            db.query(
+              pmcSql.addCargo_Type,
+              [cid, ctid],
+              (err: any, _result: any) => {
+                if (err) {
+                  next(new Error(`500:${err.sqlMessage}`));
+                }
+              }
+            );
+          });
+        }
+        if (del.length > 0) {
+          del.forEach((ctid: number) => {
+            db.query(
+              pmcSql.delCargo_Type,
+              [cid, ctid],
+              (err: any, _result: any) => {
+                if (err) {
+                  next(new Error(`500:${err.sqlMessage}`));
+                }
+              }
+            );
+          });
+        }
+        res.send({
+          success: true,
+          message: "修改成功",
+        });
       }
     ),
   },

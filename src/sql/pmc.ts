@@ -8,8 +8,9 @@ export const pmcSql = {
 
   queryCargos:`select ct.cid,cg.cname,ct.ctid,cts.typeName from cargo_type as ct `+
     `left join cargotypes as cts on ct.ctid = cts.ctid left join cargo as cg on ct.cid = cg.cid`,
-  queryCid:"select distinct cid from cargo_type",
+  queryCid:"select distinct cid,quantity from cargo",
 
   addCargo:"insert into `cargo`(`cid`,`cname`) values(?,?)",
-  addCargo_Type: "insert into `cargo_type`(`cid`,`ctid`) values(?,?)"
+  addCargo_Type: "insert into `cargo_type`(`cid`,`ctid`) values(?,?)",
+  delCargo_Type: "delete from `cargo_type` where cid=? and ctid=?"
 };
