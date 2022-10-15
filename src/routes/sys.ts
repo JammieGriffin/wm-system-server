@@ -1,8 +1,9 @@
 import { dbConf } from "../../const";
-import { Response, Router, Express } from "express";
+import { Response, Router, Express, NextFunction } from "express";
 import { IRouterConf } from ".";
 import { ILoginData } from "../types/sysType";
 import { createToken } from "../utils/jwt";
+import { sysSql } from "../sql/system";
 const express = require("express");
 const router = express.Router();
 const mysql = require("mysql2");
@@ -13,15 +14,16 @@ const sysApi: Array<IRouterConf> = [
   {
     path: "/sys",
     router: router.post("/login", (req: any, res: Response) => {
-      const reqdata: ILoginData = req.body;
-      const sql = `select * from user where wno=${reqdata.account}`;
-      db.query(sql, (err: any, result: any) => {
+      // const reqdata: ILoginData = req.body;
+      const { account, pwd } = req.body;
+      // const sql = `select * from user where wno=${reqdata.account}`;
+      db.query(sysSql.login, [account], (err: any, result: any) => {
         if (err) {
           throw err;
         }
         if (result.length === 1) {
           const { uid, wno, pwd, usrType, sex, usrName, phone } = result[0];
-          if (reqdata.pwd === pwd) {
+          if (pwd === pwd) {
             const token = createToken({
               uid: uid,
               wno: wno,
@@ -105,6 +107,21 @@ const sysApi: Array<IRouterConf> = [
         }
       });
     }),
+  },
+  {
+    path: "/sys",
+    router: router.delete(
+      "/del",
+      (req: any, res: Response, next: NextFunction) => {
+        const { uid } = req.query;
+        
+        db.query(sysSql.delUsr, [uid], (err: any, result: any) => {
+          err
+            ? next(new Error(err.sqlMessage))
+            : res.send({ success: true, message: "删除成功" });
+        });
+      }
+    ),
   },
 ];
 

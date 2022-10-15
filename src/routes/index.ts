@@ -3,6 +3,7 @@ import sysApi from "./sys";
 import consoleApi from "./console";
 import warehouseApi from "./warehouse";
 import pmcApi from "./pmc";
+import staffApi from "./staff";
 import { checkAuth,errHandler } from "../middleware/index";
 
 interface IRouterConf {
@@ -15,7 +16,8 @@ const RouterConf: Array<IRouterConf> = [
   ...sysApi,
   ...consoleApi,
   ...warehouseApi,
-  ...pmcApi
+  ...pmcApi,
+  ...staffApi
 ];
 
 function routes(app: Express): void {
