@@ -7,8 +7,11 @@ import { warehouseSql } from "../sql/warehouse";
 const express = require("express");
 const router = express.Router();
 const mysql = require("mysql2");
-const db = mysql.createConnection({ ...dbConf, multipleStatements: true });
-const toHex32 = hexoid(32);
+const db = mysql.createConnection({
+  ...dbConf,
+  multipleStatements: true,
+  namedPlaceholders: true,
+});
 const warehouseApi: Array<IRouterConf> = [
   {
     path: "/warehouse",
@@ -218,7 +221,6 @@ const warehouseApi: Array<IRouterConf> = [
     router: router.post(
       "/updateBaseInfo",
       (req: any, res: Response, next: NextFunction) => {
-        console.log(req.body);
         const {
           houseName,
           houseId,
@@ -228,25 +230,180 @@ const warehouseApi: Array<IRouterConf> = [
           htid,
           capacity,
         } = req.body;
-        db.query(warehouseSql.updateBaseInfo, [
-          houseName,
-          houseAddr,
-          htid,
-          hsid,
-          houseArea,
-          capacity,
-          houseId,
-        ],((err:any,result:any) => {
-          if (err) {
-            next(new Error(`500:${err}`));
-
+        db.query(
+          warehouseSql.updateBaseInfo,
+          [houseName, houseAddr, htid, hsid, houseArea, capacity, houseId],
+          (err: any, result: any) => {
+            if (err) {
+              next(new Error(`500:${err.sqlMessage}`));
+            }
+            res.send({
+              success: true,
+              message: "仓库信息已更新",
+            });
           }
-          res.send({
-            success:true,
-            message:"仓库信息已更新"
-          });
-          
-        }));
+        );
+      }
+    ),
+  },
+  {
+    path: "/warehouse/detial",
+    router: router.get(
+      "/getHouseStaffs",
+      (req: any, res: Response, next: NextFunction) => {
+        const { hid } = req.query;
+        db.query(
+          warehouseSql.queryHosueStaffs,
+          [hid],
+          (err: any, result: any) => {
+            err
+              ? next(new Error(`500:${err.sqlMessage}`))
+              : res.send({ success: true, result });
+          }
+        );
+      }
+    ),
+  },
+  {
+    path: "/warehouse/detial",
+    router: router.get(
+      "/getCargos",
+      (req: any, res: Response, next: NextFunction) => {
+        db.query(warehouseSql.queryCargos, (err: any, result: any) => {
+          err
+            ? next(new Error(`500:${err.sqlMessage}`))
+            : res.send({ success: true, result });
+        });
+      }
+    ),
+  },
+  {
+    path: "/warehouse/detial",
+    router: router.get(
+      "/getUsageCapactiy",
+      (req: any, res: Response, next: NextFunction) => {
+        const { hid } = req.query;
+        db.query(
+          warehouseSql.queryUsageCapacity,
+          [hid],
+          (err: any, result: any) => {
+            const { total } = result[0];
+            err
+              ? next(new Error(`500:${err.sqlMessage}`))
+              : res.send({ success: true, total });
+          }
+        );
+      }
+    ),
+  },
+  {
+    path: "/warehouse/detial",
+    router: router.get(
+      "/getExistCargos",
+      (req: any, res: Response, next: NextFunction) => {
+        const { hid } = req.query;
+        db.query(
+          warehouseSql.queryExistCargos,
+          [hid],
+          (err: any, result: any) => {
+            err
+              ? next(new Error(`500:${err.sqlMessage}`))
+              : (() => {
+                  const data = result[0]?.cid ? [...result] : [];
+                  res.send({ success: true, result: data });
+                })();
+          }
+        );
+      }
+    ),
+  },
+  {
+    path: "/warehouse/detial",
+    router: router.post(
+      "/trading",
+      (req: any, res: Response, next: NextFunction) => {
+        const tid = hexoid(32)();
+        const { cid, handler, hid, quantity, remark, isPop } = req.body;
+        const { addTradingRecord } = warehouseSql;
+        const { prefix, plus, sub, suffix } = warehouseSql.updateCargoQuantity;
+        const { basesql, plusCargo, subCargo } = warehouseSql.updateStore;
+        const updateCargoQuantity =
+          isPop === 1 ? prefix + sub + suffix : prefix + plus + suffix;
+        const updateStore =
+          isPop === 1 ? basesql + subCargo : basesql + plusCargo;
+        const sql = `${updateStore};${addTradingRecord};${updateCargoQuantity}`;
+        db.query(
+          sql,
+          {
+            tid,
+            cid,
+            hid,
+            uid: handler,
+            count: quantity,
+            remark,
+            quantity,
+            isPop,
+          },
+          (err: any, _result: any) => {
+            err
+              ? next(new Error(`500:${err.sqlMessage}`))
+              : res.send({ success: true, message: "操作成功" });
+          }
+        );
+      }
+    ),
+  },
+  {
+    path: "/warehouse/detial",
+    router: router.get(
+      "/getDeliverableQuantity",
+      (req: any, res: Response, next: NextFunction) => {
+        const { cid, hid } = req.query;
+        db.query(
+          warehouseSql.queryDeliverableQuantity,
+          [hid, cid],
+          (err: any, result: any) => {
+            err
+              ? next(new Error(`500:${err.sqlMessage}`))
+              : res.send({ success: true, ...result[0] });
+          }
+        );
+      }
+    ),
+  },
+  {
+    path: "/warehoue/detial",
+    router: router.get(
+      "/getTradingRecord",
+      (req: any, res: Response, next: NextFunction) => {
+        const { hid } = req.query;
+        db.query(
+          warehouseSql.queryTradingRecord,
+          [hid],
+          (err: any, result: any) => {
+            err
+              ? next(new Error(`500:${err.sqlMessage}`))
+              : res.send({ success: true, result: [...result] });
+          }
+        );
+      }
+    ),
+  },
+  {
+    path: "/warehouse/detial",
+    router: router.get(
+      "/getStoreInfo",
+      (req: any, res: Response, next: NextFunction) => {
+        const { hid } = req.query;
+        db.query(
+          warehouseSql.queryStoreInfoByhid,
+          [hid],
+          (err: any, result: any) => {
+            err
+            ? next(new Error(`500:${err.sqlMessage}`))
+            : res.send({success:true,result:[...result]});
+          }
+        );
       }
     ),
   },
