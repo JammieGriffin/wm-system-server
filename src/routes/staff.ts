@@ -47,7 +47,6 @@ const staffApi: Array<IRouterConf> = [
       "/getStaffInfo",
       (req: any, res: Response, next: NextFunction) => {
         const { keyWord, queryType } = req.query;
-        console.log(keyWord, queryType);
         if (!keyWord && !queryType) {
           const sql = staffSql.queryStaffInfo + staffSql.options.suffix;
           db.query(sql, (err: any, result: any) => {
@@ -95,7 +94,6 @@ const staffApi: Array<IRouterConf> = [
                 if (err) {
                   next(new Error(`500:${err.sqlMessage}`));
                 } else {
-                  console.log(result);
                   // 仓库不存在负责人 -> 添加
                   if (result.length === 0) {
                     db.query(

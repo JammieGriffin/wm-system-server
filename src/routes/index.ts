@@ -22,8 +22,6 @@ const RouterConf: Array<IRouterConf> = [
 
 function routes(app: Express): void {
   app.get("/", (req: Request, res: Response) => {
-    console.log(req.headers);
-    
     res.status(200).send("hello express");
   });
   app.use(checkAuth)

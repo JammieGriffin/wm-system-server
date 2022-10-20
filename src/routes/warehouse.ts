@@ -33,8 +33,6 @@ const warehouseApi: Array<IRouterConf> = [
               if (err) {
                 next(new Error(`500:${err.sqlMessage}`));
               }
-              console.log(result);
-
               const typeId = result.insertId;
               db.query(
                 warehouseSql.addNewHouse,

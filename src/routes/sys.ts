@@ -59,7 +59,6 @@ const sysApi: Array<IRouterConf> = [
   {
     path: "/sys",
     router: router.post("/register", (req: any, res: Response) => {
-      console.log(req.body);
       const sql_checkAcc = `select wno from user where wno=${req.body.account}`;
       db.query(sql_checkAcc, (err: any, result: any) => {
         if (err) {
@@ -67,7 +66,6 @@ const sysApi: Array<IRouterConf> = [
         }
         if (result.length === 0) {
           const uid = toHex32();
-          console.log(uid.length);
           const { account, pwd, phone, sex, usrName } = req.body;
           const sql_addUsr = `insert into \`user\` (\`uid\`,\`wno\`,\`pwd\`,\`usrType\`,\`sex\`,\`usrName\`,\`phone\`) values ('${uid}','${account}','${pwd}','staff','${sex}','${usrName}','${phone}')`;
           db.query(sql_addUsr, (err: any, result: any) => {
