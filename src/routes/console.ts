@@ -2,6 +2,7 @@ import { dbConf } from "../../const";
 import { NextFunction, Response } from "express";
 import { IRouterConf } from ".";
 import { consoleSql } from "../sql/console";
+const dayjs = require("dayjs")
 
 const express = require("express");
 const router = express.Router();
@@ -12,13 +13,12 @@ const consoleApi: Array<IRouterConf> = [
   {
     path: "/ctrl",
     router: router.get("/queryOverviewData", (req: any, res: Response) => {
-      const date = new Date().toLocaleDateString().replace(/\//g, "-");
+      const date = dayjs(new Date()).format("YYYY-MM-DD");
       db.query(
         consoleSql.queryOverviewData,
         [`${date}%`],
         (err: any, result: any) => {
           if (err) throw err;
-          console.log(result);
 
           res.send({
             success: true,
@@ -39,11 +39,8 @@ const consoleApi: Array<IRouterConf> = [
       (req: any, res: Response, next: NextFunction) => {
         const now: number = Date.now();
         const weekAgo = now - 604800000;
-        const today = new Date(now).toLocaleDateString().replace(/\//g, "-");
-        const lastWeek = new Date(weekAgo)
-          .toLocaleDateString()
-          .replace(/\//g, "-");
-        console.log(today, lastWeek);
+        const today = dayjs(new Date()).format("YYYY-MM-DD");
+        const lastWeek = dayjs(new Date(weekAgo)).format("YYYY-MM-DD");
 
         db.query(
           consoleSql.queryLatestTrading,
@@ -63,6 +60,32 @@ const consoleApi: Array<IRouterConf> = [
       "/getCapacityUsage",
       (req: any, res: Response, next: NextFunction) => {
         db.query(consoleSql.queryCapacityUsage, (err: any, result: any) => {
+          err
+            ? next(new Error(`500:${err.sqlMessage}`))
+            : res.send({ success: true, result });
+        });
+      }
+    ),
+  },
+  {
+    path: "/ctrl",
+    router: router.get(
+      "/getWarehouseList",
+      (_req: any, res: Response, next: NextFunction) => {
+        db.query(consoleSql.queryAllWarehouse, (err: any, result: any) => {
+          err
+            ? next(new Error(`500:${err.sqlMessage}`))
+            : res.send({ success: true, result });
+        });
+      }
+    ),
+  },
+  {
+    path: "/ctrl",
+    router: router.get(
+      "/getLatestRecord",
+      (_req: any, res: Response, next: NextFunction) => {
+        db.query(consoleSql.queryLatestTradingLog, (err: any, result: any) => {
           err
             ? next(new Error(`500:${err.sqlMessage}`))
             : res.send({ success: true, result });
