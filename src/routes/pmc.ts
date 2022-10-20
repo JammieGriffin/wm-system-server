@@ -8,7 +8,12 @@ import { ICargo, ICargoType } from "../types/pmcTypes";
 const express = require("express");
 const router = express.Router();
 const mysql = require("mysql2");
-const db = mysql.createConnection({ ...dbConf, multipleStatements: true });
+
+const db = mysql.createConnection({
+  ...dbConf,
+  multipleStatements: true,
+  namedPlaceholders: true,
+});
 
 const pmcApi: Array<IRouterConf> = [
   {
@@ -70,8 +75,6 @@ const pmcApi: Array<IRouterConf> = [
             next(new Error(`500:${err.sqlMessage}`));
           }
           const cargos: Array<ICargo> = [];
-          console.log(result[0]);
-          
           Array.from(
             result[0].map((item: { cid: string; quantity: number }) => {
               //return item.cid;
@@ -193,6 +196,34 @@ const pmcApi: Array<IRouterConf> = [
         res.send({
           success: true,
           message: "修改成功",
+        });
+      }
+    ),
+  },
+  {
+    path: "/pmc",
+    router: router.get(
+      "/getDistributeData",
+      (req: any, res: Response, next: NextFunction) => {
+        const { cid } = req.query;
+        db.query(pmcSql.queryDistributeData, [cid], (err: any, result: any) => {
+          err
+            ? next(new Error(`500:${err.sqlMessage}`))
+            : res.send({ success: true, result });
+        });
+      }
+    ),
+  },
+  {
+    path: "/pmc",
+    router: router.delete(
+      "/delCargo",
+      (req: any, res: Response, next: NextFunction) => {
+        const { cid } = req.query;
+        db.query(pmcSql.delCargo, { cid }, (err: any, _result: any) => {
+          err
+            ? next(new Error(`500:${err.sqlMessage}`))
+            : res.send({ message: "删除成功" });
         });
       }
     ),
